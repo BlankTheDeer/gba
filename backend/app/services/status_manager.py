@@ -18,9 +18,14 @@ COLLECTION_NAME = "status_history"
 # Settings
 RETENTION_DAYS = 30
 LOG_INTERVAL_MINUTES = 10
-CACHE_FILE = "/home/blankthedeer/gba/backend/status_cache.json"
+
+# Determine a writable base directory automatically
+HOME_DIR = os.getenv("HOME", "/mnt/server")
+BASE_DIR = HOME_DIR if os.access(HOME_DIR, os.W_OK) else "/mnt/server"
+
+CACHE_FILE = os.path.join(BASE_DIR, "status_cache.json")
 CACHE_TTL_MINUTES = 10
-ALERT_STATE_FILE = "/home/blankthedeer/gba/backend/status_alerts.json"
+ALERT_STATE_FILE = os.path.join(BASE_DIR, "status_alerts.json")
 
 # Discord Webhooks
 DISCORD_ALERT_WEBHOOK = os.getenv("DISCORD_ALERT_WEBHOOK", "")
@@ -32,10 +37,11 @@ SERVICE_ICONS = {
     "user_login": "🔐",
     "api_gateway": "🌐",
     "storage": "💾",
-    "support_portal": "💌"
+    "support_portal": "📒"
 }
 
-# 🗂 Cache Handling
+
+# 💾 Cache Handling
 def _load_cache():
     if not os.path.exists(CACHE_FILE):
         return None
@@ -80,7 +86,7 @@ def _save_alert_state(data: dict):
         print(f"[StatusManager] Alert state write failed: {e}")
 
 
-# 🔔 Discord Alerts
+# 💬 Discord Alerts
 async def send_discord_alert(service_changes: dict):
     """Send a grouped alert to Discord for multiple service updates."""
     if not DISCORD_ALERT_WEBHOOK:
