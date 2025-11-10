@@ -1,0 +1,65 @@
+<!-- ?? BlankTB Portal — Token Delivery Email Template -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Your BlankTB Portal Access Token</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #f9f9fb;
+      color: #222;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .title {
+      color: #e27ad1;
+      font-weight: bold;
+      font-size: 1.4em;
+      text-align: center;
+    }
+    .token-box {
+      background: #f5f0fa;
+      border: 2px dashed #c274e6;
+      text-align: center;
+      padding: 15px;
+      margin: 20px 0;
+      font-size: 1.5em;
+      border-radius: 10px;
+    }
+    .footer {
+      font-size: 0.8em;
+      text-align: center;
+      color: #666;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">Your BlankTB Portal Access Token</div>
+    <p>Hello <strong>{{ buyer_name }}</strong>,</p>
+    <p>Thank you for joining the <strong>BlankTB Portal</strong> ??</p>
+    <p>Your unique access token is below:</p>
+    <div class="token-box">{{ token_code }}</div>
+    <p>This token grants <strong>{{ token_days }}</strong> days of access to <a href="https://gba.blanktb.net">gba.blanktb.net</a>.</p>
+    <p>To redeem your token:</p>
+    <ol>
+      <li>Go to <a href="https://gba.blanktb.net/redeem.html">gba.blanktb.net/redeem.html</a></li>
+      <li>Enter your token and choose “I’m a new user” or “I already have an account.”</li>
+    </ol>
+    <p>Once redeemed, you can upload your own GBA ROMs and saves securely. ???</p>
+    <div class="footer">
+      © BlankTB — All Rights Reserved.<br>
+      For help, visit our <a href="https://gba.blanktb.net/help.html">Help Page</a> or Discord support server.
+    </div>
+  </div>
+</body>
+</html>

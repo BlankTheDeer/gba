@@ -1,0 +1,47 @@
+<!-- ?? BlankTB Portal — Security / Supervision Alert -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BlankTB Portal Security Alert</title>
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background: #fafafa;
+      padding: 20px;
+    }
+    .card {
+      background: #fff3f3;
+      border: 2px solid #ff8a8a;
+      border-radius: 10px;
+      padding: 20px;
+      color: #222;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    h2 {
+      color: #d73939;
+    }
+    .footer {
+      text-align: center;
+      font-size: 0.9em;
+      margin-top: 15px;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2>Security Notice ??</h2>
+    <p>Hello {{ username }},</p>
+    <p>We noticed an unusual login attempt on your BlankTB Portal account from IP <strong>{{ ip }}</strong> using device <strong>{{ device }}</strong>.</p>
+    <p>If this was you, no action is required. If not, please contact the admin team immediately through the Help page or Discord.</p>
+    <p>If repeated anomalies occur, your account may be temporarily locked for safety.</p>
+    <div class="footer">
+      — BlankTB Security System ??<br>
+      <a href="https://gba.blanktb.net/help.html">Contact Admin</a> |
+      <a href="https://gba.blanktb.net/privacy.html">Privacy Policy</a>
+    </div>
+  </div>
+</body>
+</html>

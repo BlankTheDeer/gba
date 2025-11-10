@@ -1,0 +1,57 @@
+# -----------------------------
+# ?? BlankTB Portal Backend .gitattributes
+# Ensures consistent encoding and line endings across all environments
+# -----------------------------
+
+# Always use LF line endings for all text files
+* text eol=lf
+
+# Default character encoding (UTF-8)
+* text working-tree-encoding=UTF-8
+
+# Normalize Python, config, and HTML files
+*.py     text diff=python
+*.html   text diff=html
+*.css    text diff=css
+*.js     text diff=javascript
+*.json   text diff=json
+*.yml    text diff=yaml
+*.yaml   text diff=yaml
+*.env    text eol=lf
+*.md     text diff=markdown
+
+# Treat image and binary files as binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.ico    binary
+*.svg    binary
+*.pdf    binary
+*.zip    binary
+*.gz     binary
+
+# Exclude certain branding files from line-ending normalization
+app/branding/* binary
+
+# Handle shell scripts and systemd units (LF only)
+*.sh      text eol=lf
+*.service text eol=lf
+*.socket  text eol=lf
+*.conf    text eol=lf
+
+# Ensure README.md and docs always display correctly on GitHub
+README.md text eol=lf
+LICENSE   text eol=lf
+
+# Keep logs unmodified (binary treated to prevent diff noise)
+*.log binary
+
+# Prevent auto CRLF conversion on Windows (safety)
+*.py text eol=lf
+*.env text eol=lf
+
+# Preserve emojis and special Unicode symbols (important!)
+*.py linguist-language=Python working-tree-encoding=UTF-8
+*.html linguist-language=HTML working-tree-encoding=UTF-8
+*.json linguist-language=JSON working-tree-encoding=UTF-8

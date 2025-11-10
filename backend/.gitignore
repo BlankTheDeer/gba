@@ -1,0 +1,114 @@
+# -----------------------------
+# ?? BlankTB Portal Backend .gitignore
+# -----------------------------
+
+# Environment & secrets
+.env
+.env.*
+!*.example            # Keep example templates visible
+*.key
+*.pem
+*.crt
+*.token
+*.secret
+
+# Python bytecode / cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+*.pkl
+*.tmp
+*.bak
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+env/
+.Python
+
+# Build / package artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.spec
+*.log
+*.out
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+coverage.xml
+nosetests.xml
+htmlcov/
+
+# IDE & editor junk
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# Database & runtime files
+*.db
+*.sqlite3
+/data/
+dump.rdb
+*.bson
+*.json
+*.yaml
+
+# Uploaded / temporary user files
+uploads/
+tmp/
+temp/
+__cache__/
+
+# Reports & logs
+logs/
+*.log
+*.gz
+*.pid
+health_state.json
+status_cache.json
+
+# Node or mixed assets (just in case frontend assets live near backend)
+node_modules/
+npm-debug.log*
+yarn-error.log*
+
+# Branding / generated files
+app/branding/*.ico
+app/branding/*.png
+app/branding/*.svg
+!app/branding/BlankTB_Emblem.ico
+!app/branding/BlankTB_Emblem_TextFree.png
+!app/branding/BlankTB_Logo_Full.png
+!app/branding/BlankTB_Emblem.svg
+
+# System / Service configs (local only)
+*.service
+*.socket
+*.conf
+*.ini
+
+# Editor backups
+*~
+*.swp
+*.swo
+
+# Jupyter / notebooks (if ever used)
+.ipynb_checkpoints/
+*.ipynb
+
+# Generated diagnostic exports
+diagnostics/
+debug_output/
