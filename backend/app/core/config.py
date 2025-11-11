@@ -1,126 +1,181 @@
 #!/usr/bin/env python3
-# 🦌 BlankTB Portal — Backend Configuration
-# Loads environment variables, initializes MongoDB, and defines core settings.
-# Includes a startup summary & Discord boot announcement!
+# 🦌 BlankTB Portal — Backend Configuration (Schema-Validated Edition)
+# Loads environment variables via Pydantic, validates against .env.schema.json,
+# initializes MongoDB, and sends Discord startup alerts 💌
 # (c) Blank The Deer — BlankTB.net
 
 import os
+import json
 import asyncio
 import datetime
 import aiohttp
-from dotenv import load_dotenv
+from typing import List
+from pydantic_settings import BaseSettings
+from pydantic import Field, ValidationError
 from motor.motor_asyncio import AsyncIOMotorClient
 
-# 🌿 Load environment variables
-load_dotenv()
-
 
 # ------------------------------------------------------
-# 🧩 Settings Class
+# 🌿 Settings Model (Pydantic)
 # ------------------------------------------------------
-class Settings:
+class Settings(BaseSettings):
     # 🌐 App Info
-    APP_NAME: str = os.getenv("APP_NAME", "BlankTB Portal Backend")
-    APP_VERSION: str = os.getenv("APP_VERSION", "1.0.0")
-    DOMAIN: str = os.getenv("DOMAIN", "https://gba.blanktb.net")
-    ENVIRONMENT: str = os.getenv("ENVIRONMENT", "production")
-    DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
+    APP_NAME: str = Field("BlankTB Portal Backend")
+    APP_VERSION: str = Field("1.0.0")
+    DOMAIN: str = Field("https://gba.blanktb.net")
+    ENVIRONMENT: str = Field("production")
+    DEBUG: bool = False
 
     # 🗄️ MongoDB
-    MONGO_URI: str = os.getenv("MONGO_URI", "mongodb://localhost:27017/blanktb_portal")
-    MONGO_DB_NAME: str = os.getenv("MONGO_DB_NAME", "blanktb_portal")
-    MONGO_COLLECTION_PREFIX: str = os.getenv("MONGO_COLLECTION_PREFIX", "btb_")
-    MONGO_CONNECT_TIMEOUT_MS: int = int(os.getenv("MONGO_CONNECT_TIMEOUT_MS", 30000))
-    MONGO_SOCKET_TIMEOUT_MS: int = int(os.getenv("MONGO_SOCKET_TIMEOUT_MS", 30000))
+    MONGO_URI: str = Field("mongodb://localhost:27017/blanktb_portal")
+    MONGO_DB_NAME: str = Field("blanktb_portal")
+    MONGO_COLLECTION_PREFIX: str = Field("btb_")
+    MONGO_CONNECT_TIMEOUT_MS: int = 30000
+    MONGO_SOCKET_TIMEOUT_MS: int = 30000
 
     # 🔐 Security / Auth
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "changemeplease")
-    JWT_EXPIRY_HOURS: int = int(os.getenv("JWT_EXPIRY_HOURS", 24))
-    PASSWORD_SALT_ROUNDS: int = int(os.getenv("PASSWORD_SALT_ROUNDS", 12))
-    ADMIN_API_KEY: str = os.getenv("ADMIN_API_KEY", "changeme_admin_token_here")
+    SECRET_KEY: str = Field("changemeplease")
+    JWT_EXPIRY_HOURS: int = 24
+    PASSWORD_SALT_ROUNDS: int = 12
+    ADMIN_API_KEY: str = Field("changeme_admin_token_here")
 
     # ✉️ Email / SMTP
-    MAIL_ENABLED: bool = os.getenv("MAIL_ENABLED", "false").lower() == "true"
-    MAIL_SERVER: str = os.getenv("MAIL_SERVER", "")
-    MAIL_PORT: int = int(os.getenv("MAIL_PORT", 587))
-    MAIL_USERNAME: str = os.getenv("MAIL_USERNAME", "")
-    MAIL_PASSWORD: str = os.getenv("MAIL_PASSWORD", "")
-    MAIL_FROM_NAME: str = os.getenv("MAIL_FROM_NAME", "BlankTB Support 🦌")
-    MAIL_FROM_EMAIL: str = os.getenv("MAIL_FROM_EMAIL", "support@blanktb.net")
-    MAIL_TLS: bool = os.getenv("MAIL_TLS", "true").lower() == "true"
-    MAIL_SSL: bool = os.getenv("MAIL_SSL", "false").lower() == "true"
+    MAIL_ENABLED: bool = False
+    MAIL_SERVER: str = ""
+    MAIL_PORT: int = 587
+    MAIL_USERNAME: str = ""
+    MAIL_PASSWORD: str = ""
+    MAIL_FROM_NAME: str = Field("BlankTB Support 🦌")
+    MAIL_FROM_EMAIL: str = Field("support@blanktb.net")
+    MAIL_TLS: bool = True
+    MAIL_SSL: bool = False
 
     # 🧠 Google ReCAPTCHA
-    RECAPTCHA_ENABLED: bool = os.getenv("RECAPTCHA_ENABLED", "true").lower() == "true"
-    RECAPTCHA_SITE_KEY: str = os.getenv("RECAPTCHA_SITE_KEY", "")
-    RECAPTCHA_SECRET_KEY: str = os.getenv("RECAPTCHA_SECRET_KEY", "")
+    RECAPTCHA_ENABLED: bool = True
+    RECAPTCHA_SITE_KEY: str = ""
+    RECAPTCHA_SECRET_KEY: str = ""
 
-    # 💾 Cache / Status Management
-    STATUS_CACHE_FILE: str = os.getenv("STATUS_CACHE_FILE", "/home/container/status_cache.json")
-    STATUS_ALERT_FILE: str = os.getenv("STATUS_ALERT_FILE", "/home/container/status_alerts.json")
-    CACHE_TTL_MINUTES: int = int(os.getenv("CACHE_TTL_MINUTES", 10))
-    RETENTION_DAYS: int = int(os.getenv("RETENTION_DAYS", 30))
-    LOG_INTERVAL_MINUTES: int = int(os.getenv("LOG_INTERVAL_MINUTES", 10))
-    ALERT_DELAY_MINUTES: int = int(os.getenv("ALERT_DELAY_MINUTES", 5))
+    # 💾 Cache / Status
+    STATUS_CACHE_FILE: str = "/home/container/status_cache.json"
+    STATUS_ALERT_FILE: str = "/home/container/status_alerts.json"
+    CACHE_TTL_MINUTES: int = 10
+    RETENTION_DAYS: int = 30
+    LOG_INTERVAL_MINUTES: int = 10
+    ALERT_DELAY_MINUTES: int = 5
 
     # 🦋 Discord Webhooks
-    DISCORD_ALERT_WEBHOOK: str = os.getenv("DISCORD_ALERT_WEBHOOK", "")
-    DISCORD_UPTIME_WEBHOOK: str = os.getenv("DISCORD_UPTIME_WEBHOOK", "")
-    DISCORD_ADMIN_WEBHOOK: str = os.getenv("DISCORD_ADMIN_WEBHOOK", "")
-    DISCORD_DEBUG_WEBHOOK: str = os.getenv("DISCORD_DEBUG_WEBHOOK", "")
-
+    DISCORD_ALERT_WEBHOOK: str = ""
+    DISCORD_UPTIME_WEBHOOK: str = ""
+    DISCORD_ADMIN_WEBHOOK: str = ""
+    DISCORD_DEBUG_WEBHOOK: str = ""
+    DISCORD_HEALTHCHECK_WEBHOOK: str = ""
     # ⚙️ Server
-    HOST: str = os.getenv("HOST", "0.0.0.0")
-    _PORT_ENV = os.getenv("PORT", "8000")
-    try:
-        PORT: int = int(_PORT_ENV)
-    except ValueError:
-        print(f"⚠️ Invalid PORT value '{_PORT_ENV}', falling back to 8000.")
-        PORT: int = 8000
-
-    LOG_DIR: str = os.getenv("LOG_DIR", "/home/container/logs")
-    ALLOWED_ORIGINS: list[str] = os.getenv(
-        "ALLOWED_ORIGINS",
-        "https://gba.blanktb.net,http://localhost:5173"
-    ).split(",")
+    HOST: str = "0.0.0.0"
+    PORT: int = 8000
+    LOG_DIR: str = "/home/container/logs"
+    ALLOWED_ORIGINS: List[str] = Field(
+        default_factory=lambda: [
+            "https://gba.blanktb.net",
+            "http://localhost:5173",
+        ]
+    )
 
     # 🦌 Feature Toggles
-    DEVELOPER_MODE: bool = os.getenv("DEVELOPER_MODE", "false").lower() == "true"
-    ENABLE_PUBLIC_STATUS: bool = os.getenv("ENABLE_PUBLIC_STATUS", "true").lower() == "true"
-    ENABLE_EMAIL_SERVICE: bool = os.getenv("ENABLE_EMAIL_SERVICE", "true").lower() == "true"
-    ENABLE_RECAPTCHA: bool = os.getenv("ENABLE_RECAPTCHA", "true").lower() == "true"
-    ENABLE_DISCORD_ALERTS: bool = os.getenv("ENABLE_DISCORD_ALERTS", "true").lower() == "true"
-    ENABLE_ANALYTICS: bool = os.getenv("ENABLE_ANALYTICS", "true").lower() == "true"
+    DEVELOPER_MODE: bool = False
+    ENABLE_PUBLIC_STATUS: bool = True
+    ENABLE_EMAIL_SERVICE: bool = True
+    ENABLE_RECAPTCHA: bool = True
+    ENABLE_DISCORD_ALERTS: bool = True
+    ENABLE_ANALYTICS: bool = True
+    HEALTHCHECK_TIMEOUT: int = Field(default=10)
+    HEALTHCHECK_FAIL_THRESHOLD: int = Field(default=3)
+    BACKEND_BASE_URL: str = Field(default="https://backend.blanktb.net")
+    HOME: str = Field(default="/home/blankthedeer")
 
     # 🌈 Branding
-    BRAND_NAME: str = os.getenv("BRAND_NAME", "BlankTB")
-    BRAND_LOGO_URL: str = os.getenv("BRAND_LOGO_URL", "https://cdn.blanktb.net/assets/logo_circular.svg")
-    BRAND_PRIMARY_COLOR: str = os.getenv("BRAND_PRIMARY_COLOR", "#A7E8B9")
-    BRAND_ACCENT_COLOR: str = os.getenv("BRAND_ACCENT_COLOR", "#F6D5F7")
-    BRAND_FAVICON_URL: str = os.getenv("BRAND_FAVICON_URL", "https://cdn.blanktb.net/assets/favicon.ico")
+    BRAND_NAME: str = "BlankTB"
+    BRAND_LOGO_URL: str = "https://cdn.blanktb.net/assets/logo_circular.svg"
+    BRAND_PRIMARY_COLOR: str = "#A7E8B9"
+    BRAND_ACCENT_COLOR: str = "#F6D5F7"
+    BRAND_FAVICON_URL: str = "https://cdn.blanktb.net/assets/favicon.ico"
 
     # 📦 Paths & Misc
-    DATA_DIR: str = os.getenv("DATA_DIR", "/home/container/app/data")
-    TEMP_DIR: str = os.getenv("TEMP_DIR", "/home/container/tmp")
-    UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/home/container/uploads")
-    BACKUP_DIR: str = os.getenv("BACKUP_DIR", "/home/container/backups")
+    DATA_DIR: str = "/home/container/app/data"
+    TEMP_DIR: str = "/home/container/tmp"
+    UPLOAD_DIR: str = "/home/container/uploads"
+    BACKUP_DIR: str = "/home/container/backups"
 
     # 🕒 System Defaults
-    FORCE_SSL_REDIRECT: bool = os.getenv("FORCE_SSL_REDIRECT", "true").lower() == "true"
-    TIMEZONE: str = os.getenv("TIMEZONE", "UTC")
-    FASTAPI_WORKERS: int = int(os.getenv("FASTAPI_WORKERS", 1))
+    FORCE_SSL_REDIRECT: bool = True
+    TIMEZONE: str = "UTC"
+    FASTAPI_WORKERS: int = 1
+
+    class Config:
+        env_file = ".env"
+        case_sensitive = False
 
 
-# Global instance
-settings = Settings()
+# ------------------------------------------------------
+# 🌸 Schema Validation Helper
+# ------------------------------------------------------
+def validate_schema(schema_path: str = ".env.schema.json", env_path: str = ".env"):
+    """Compare .env variables with .env.schema.json and warn on mismatches."""
+    if not os.path.exists(schema_path):
+        print("🌸 No .env.schema.json found — skipping schema validation.")
+        return
 
-mongo_client = None
-mongo_db = None
+    try:
+        with open(schema_path, "r", encoding="utf-8") as f:
+            schema = json.load(f)
+        required_vars = schema.get("required", [])
+        properties = schema.get("properties", {})
+
+        with open(env_path, "r", encoding="utf-8") as f:
+            env_lines = [
+                line.split("=", 1)[0].strip()
+                for line in f
+                if line.strip() and not line.startswith("#")
+            ]
+
+        missing = [v for v in required_vars if v not in env_lines]
+        extras = [v for v in env_lines if v not in properties]
+
+        if not missing and not extras:
+            print("🦌 .env perfectly matches .env.schema.json — sparkle clean ✨")
+        else:
+            if missing:
+                print("⚠️ Missing required variables:")
+                for v in missing:
+                    print(f"   🌸 {v}")
+            if extras:
+                print("💡 Extra variables in .env not found in schema:")
+                for v in extras:
+                    print(f"   🌿 {v}")
+
+    except Exception as e:
+        print(f"❌ Failed to validate schema: {e}")
+
+
+# ------------------------------------------------------
+# 🌿 Load and Validate Environment
+# ------------------------------------------------------
+try:
+    settings = Settings()
+    print("🦌 Loaded and validated environment variables successfully.")
+    validate_schema()
+except ValidationError as e:
+    print("❌ Invalid environment configuration! Please fix your .env file.\n")
+    print(e.json(indent=2))
+    raise SystemExit(1)
 
 
 # ------------------------------------------------------
 # 🍃 MongoDB Initialization
 # ------------------------------------------------------
+mongo_client = None
+mongo_db = None
+
+
 async def init_mongo():
     """Initialize MongoDB connection and create indexes."""
     global mongo_client, mongo_db
@@ -153,7 +208,7 @@ async def init_mongo():
 
 
 # ------------------------------------------------------
-# 🌸 Startup Summary
+# 🌷 Startup Summary
 # ------------------------------------------------------
 def print_startup_summary():
     """Pretty-print service configuration summary on startup."""
@@ -199,7 +254,7 @@ async def send_discord_startup_message():
             f"**Version:** `{settings.APP_VERSION}`\n"
             f"**Domain:** {settings.DOMAIN}\n"
         ),
-        "color": 0xA7E8B9,
+        "color": int(settings.BRAND_PRIMARY_COLOR.replace('#', '0x'), 16),
         "thumbnail": {"url": settings.BRAND_LOGO_URL},
         "footer": {"text": "BlankTB Portal • Backend Startup"},
         "timestamp": datetime.datetime.utcnow().isoformat(),
