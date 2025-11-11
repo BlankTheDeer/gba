@@ -11,7 +11,7 @@ import aiohttp
 from dotenv import load_dotenv
 from motor.motor_asyncio import AsyncIOMotorClient
 
-# 🪄 Load environment variables
+# 🌿 Load environment variables
 load_dotenv()
 
 
@@ -50,7 +50,7 @@ class Settings:
     MAIL_TLS: bool = os.getenv("MAIL_TLS", "true").lower() == "true"
     MAIL_SSL: bool = os.getenv("MAIL_SSL", "false").lower() == "true"
 
-    # 🪄 Google ReCAPTCHA
+    # 🧠 Google ReCAPTCHA
     RECAPTCHA_ENABLED: bool = os.getenv("RECAPTCHA_ENABLED", "true").lower() == "true"
     RECAPTCHA_SITE_KEY: str = os.getenv("RECAPTCHA_SITE_KEY", "")
     RECAPTCHA_SECRET_KEY: str = os.getenv("RECAPTCHA_SECRET_KEY", "")
@@ -63,15 +63,21 @@ class Settings:
     LOG_INTERVAL_MINUTES: int = int(os.getenv("LOG_INTERVAL_MINUTES", 10))
     ALERT_DELAY_MINUTES: int = int(os.getenv("ALERT_DELAY_MINUTES", 5))
 
-    # 🦊 Discord Webhooks
+    # 🦋 Discord Webhooks
     DISCORD_ALERT_WEBHOOK: str = os.getenv("DISCORD_ALERT_WEBHOOK", "")
     DISCORD_UPTIME_WEBHOOK: str = os.getenv("DISCORD_UPTIME_WEBHOOK", "")
     DISCORD_ADMIN_WEBHOOK: str = os.getenv("DISCORD_ADMIN_WEBHOOK", "")
     DISCORD_DEBUG_WEBHOOK: str = os.getenv("DISCORD_DEBUG_WEBHOOK", "")
 
-    # 🛰️ Server
+    # ⚙️ Server
     HOST: str = os.getenv("HOST", "0.0.0.0")
-    PORT: int = int(os.getenv("PORT", 8000))
+    _PORT_ENV = os.getenv("PORT", "8000")
+    try:
+        PORT: int = int(_PORT_ENV)
+    except ValueError:
+        print(f"⚠️ Invalid PORT value '{_PORT_ENV}', falling back to 8000.")
+        PORT: int = 8000
+
     LOG_DIR: str = os.getenv("LOG_DIR", "/home/container/logs")
     ALLOWED_ORIGINS: list[str] = os.getenv(
         "ALLOWED_ORIGINS",
@@ -140,7 +146,7 @@ async def init_mongo():
         print(f"❌ MongoDB connection failed: {e}")
         return
 
-    # 🪞 Print local summary & send webhook
+    # 🪄 Print local summary & send webhook
     await asyncio.sleep(0.5)
     print_startup_summary()
     await send_discord_startup_message()
@@ -161,14 +167,14 @@ def print_startup_summary():
     print("🧠 Feature Flags:")
     print(f"   📬 Email Service:      {'✅ Enabled' if settings.MAIL_ENABLED else '❌ Disabled'}")
     print(f"   🔒 ReCAPTCHA:          {'✅ Enabled' if settings.RECAPTCHA_ENABLED else '❌ Disabled'}")
-    print(f"   🦊 Discord Alerts:     {'✅ Enabled' if settings.ENABLE_DISCORD_ALERTS else '❌ Disabled'}")
+    print(f"   🦋 Discord Alerts:     {'✅ Enabled' if settings.ENABLE_DISCORD_ALERTS else '❌ Disabled'}")
     print(f"   📊 Analytics:          {'✅ Enabled' if settings.ENABLE_ANALYTICS else '❌ Disabled'}")
-    print(f"   🧑‍💻 Developer Mode:    {'🧪 Yes' if settings.DEVELOPER_MODE else '🚫 No'}")
+    print(f"   👩‍💻 Developer Mode:    {'🧪 Yes' if settings.DEVELOPER_MODE else '🚫 No'}")
     print("-" * 65)
     print("💾 Cache Settings:")
     print(f"   🕒 Retention Days:     {settings.RETENTION_DAYS}")
     print(f"   🔁 Log Interval:       {settings.LOG_INTERVAL_MINUTES} min")
-    print(f"   📁 Cache File:         {settings.STATUS_CACHE_FILE}")
+    print(f"   🗂️ Cache File:         {settings.STATUS_CACHE_FILE}")
     print(f"   ⚙️  Alert File:         {settings.STATUS_ALERT_FILE}")
     print("-" * 65)
     print(f"🦌 Brand: {settings.BRAND_NAME} | Primary {settings.BRAND_PRIMARY_COLOR} • Accent {settings.BRAND_ACCENT_COLOR}")
@@ -177,12 +183,12 @@ def print_startup_summary():
 
 
 # ------------------------------------------------------
-# 💌 Discord Debug Webhook Announcement
+# 💬 Discord Debug Webhook Announcement
 # ------------------------------------------------------
 async def send_discord_startup_message():
     """Sends a pretty startup notification to Discord debug webhook."""
     if not settings.DISCORD_DEBUG_WEBHOOK:
-        print("🦊 Debug webhook not set, skipping Discord startup message.")
+        print("🦋 Debug webhook not set, skipping Discord startup message.")
         return
 
     embed = {
@@ -205,7 +211,7 @@ async def send_discord_startup_message():
         async with aiohttp.ClientSession() as session:
             async with session.post(settings.DISCORD_DEBUG_WEBHOOK, json=payload) as resp:
                 if resp.status == 204:
-                    print("🦊 Sent startup notification to Discord debug webhook.")
+                    print("🦋 Sent startup notification to Discord debug webhook.")
                 else:
                     print(f"⚠️ Failed to send startup webhook (HTTP {resp.status}).")
     except Exception as e:
