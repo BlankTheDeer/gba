@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 🦌 BlankTB Portal — Backend Configuration (Schema-Validated Edition)
 # Loads environment variables via Pydantic, validates against .env.schema.json,
-# initializes MongoDB, and sends Discord startup alerts 💌
+# initializes MongoDB (PyMongo AsyncIO), and sends Discord startup alerts 💌
 # (c) Blank The Deer — BlankTB.net
 
 import os
@@ -12,7 +12,7 @@ import aiohttp
 from typing import List
 from pydantic_settings import BaseSettings
 from pydantic import Field, ValidationError
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import AsyncMongoClient  # ✅ Replaces motor.motor_asyncio
 
 
 # ------------------------------------------------------
@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     DISCORD_ADMIN_WEBHOOK: str = ""
     DISCORD_DEBUG_WEBHOOK: str = ""
     DISCORD_HEALTHCHECK_WEBHOOK: str = ""
+
     # ⚙️ Server
     HOST: str = "0.0.0.0"
     PORT: int = 8000
@@ -116,12 +117,12 @@ class Settings(BaseSettings):
 
 
 # ------------------------------------------------------
-# 🌸 Schema Validation Helper
+# 🌼 Schema Validation Helper
 # ------------------------------------------------------
 def validate_schema(schema_path: str = ".env.schema.json", env_path: str = ".env"):
     """Compare .env variables with .env.schema.json and warn on mismatches."""
     if not os.path.exists(schema_path):
-        print("🌸 No .env.schema.json found — skipping schema validation.")
+        print("🌼 No .env.schema.json found — skipping schema validation.")
         return
 
     try:
@@ -146,7 +147,7 @@ def validate_schema(schema_path: str = ".env.schema.json", env_path: str = ".env
             if missing:
                 print("⚠️ Missing required variables:")
                 for v in missing:
-                    print(f"   🌸 {v}")
+                    print(f"   🌼 {v}")
             if extras:
                 print("💡 Extra variables in .env not found in schema:")
                 for v in extras:
@@ -170,7 +171,7 @@ except ValidationError as e:
 
 
 # ------------------------------------------------------
-# 🍃 MongoDB Initialization
+# 🍃 MongoDB Initialization (Async PyMongo)
 # ------------------------------------------------------
 mongo_client = None
 mongo_db = None
@@ -181,12 +182,11 @@ async def init_mongo():
     global mongo_client, mongo_db
 
     try:
-        mongo_client = AsyncIOMotorClient(
+        mongo_client = AsyncMongoClient(
             settings.MONGO_URI,
-            connectTimeoutMS=settings.MONGO_CONNECT_TIMEOUT_MS,
-            socketTimeoutMS=settings.MONGO_SOCKET_TIMEOUT_MS,
+            serverSelectionTimeoutMS=settings.MONGO_CONNECT_TIMEOUT_MS,
         )
-        mongo_db = mongo_client.get_default_database()
+        mongo_db = mongo_client[settings.MONGO_DB_NAME]
         print(f"🦌 MongoDB connected to {mongo_db.name}")
 
         # ✅ Create indexes
@@ -229,7 +229,7 @@ def print_startup_summary():
     print("💾 Cache Settings:")
     print(f"   🕒 Retention Days:     {settings.RETENTION_DAYS}")
     print(f"   🔁 Log Interval:       {settings.LOG_INTERVAL_MINUTES} min")
-    print(f"   🗂️ Cache File:         {settings.STATUS_CACHE_FILE}")
+    print(f"   📄 Cache File:         {settings.STATUS_CACHE_FILE}")
     print(f"   ⚙️  Alert File:         {settings.STATUS_ALERT_FILE}")
     print("-" * 65)
     print(f"🦌 Brand: {settings.BRAND_NAME} | Primary {settings.BRAND_PRIMARY_COLOR} • Accent {settings.BRAND_ACCENT_COLOR}")

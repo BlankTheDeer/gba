@@ -20,7 +20,6 @@ httpx
 idna
 Jinja2
 MarkupSafe
-motor
 multidict
 passlib
 propcache
